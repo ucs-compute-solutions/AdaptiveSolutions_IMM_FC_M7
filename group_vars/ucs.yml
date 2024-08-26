@@ -1,0 +1,245 @@
+---
+# ##############################################################################
+#
+#   Cisco IMM Configuration Parameters for UCS servers
+#
+# #############################################################################
+
+# Prefix added to the pool/policy/profile configuration to quickly identify items created by Ansible
+prefix: IAC
+#
+
+# Commenting out the following three variables will skip the iSCSI and/or FC configurations
+# Configure iSCSI policies and profiles only when the value is set to true
+#
+configure_iscsi: "false"
+
+# Configure Fibre Channel policies and profiles only when the value is set to true
+configure_fc: "true"
+
+# Configure Fibre Channel NVMe vHBAs; only works when the configure_fc is set to true
+configure_fc_nvme: "true"
+
+# ##############################################################################
+#
+#   Server Configuration Parameters
+#
+# #############################################################################
+
+# Server CPU Type - set to Intel or AMD
+server_cpu_type: "Intel"
+
+# VIC Type - set to 4G for 4th Gen VICs or 5G for 5th Gen VICs 
+# Also add 4G or 5G to Server Profile Template Name
+vic_type: "5G"
+
+# ##############################################################################
+#
+#   Parameters for Server Pools
+#
+# ##############################################################################
+
+# Chassis Configuration - UUID Pool
+name_of_uuid_pool: "{{ prefix }}-UUID_Pool"
+uuid_prefix: "AA210000-0000-0001"
+uuid_size: 64
+uuid_from: "AA21-000000000001"
+
+# IP Address Pool for In-Band (IB) Management Access 
+#
+#name_of_ip_pool_for_ib_management_access: "{{ prefix }}-IB-MGMT-IP_Pool"
+#ip_pool_start_for_ib_management_access: 
+#size_of_ip_pool_for_ib_management_access: 
+#gateway_ib_mgmt: 
+#netmask_ib_mgmt: 
+#primary_dns_ib_mgmt: 
+#secondary_dns_ib_mgmt: ""
+
+# IP Address Pool for Out-of-Band (OOB) Management Access 
+#
+name_of_ip_pool_for_oob_management_access: "{{ prefix }}-OOB-MGMT-IP_Pool"
+ip_pool_start_for_oob_management_access: 192.168.168.101
+size_of_ip_pool_for_oob_management_access: 24
+gateway_oob_mgmt: 192.168.168.254
+netmask_oob_mgmt: 255.255.255.0
+primary_dns_oob_mgmt: 192.168.160.53
+secondary_dns_oob_mgmt: 192.168.160.54
+
+# Separate MAC Address Pools for Fabric-A and Fabric-B
+#
+# For FI-A
+name_of_mac_pool_on_fi_a: "{{ prefix }}-Fabric-A-MAC_Pool"
+mac_pool_start_on_fi_a: "00:25:B5:21:0A:00"
+size_of_mac_pool_on_fi_a: 256
+
+# For FI-B
+name_of_mac_pool_on_fi_b: "{{ prefix}}-Fabric-B-MAC_Pool"
+mac_pool_start_on_fi_b: "00:25:B5:21:0B:00"
+size_of_mac_pool_on_fi_b: 256
+
+# Pools for Fibre Channel storage access - only needed when configure_fc == "true"
+#
+# WWNN Pool
+name_of_wwnn_pool: "{{ prefix }}-WWNN_Pool"
+wwnn_pool_start: "20:00:00:25:B5:21:00:00"
+wwnn_pool_size: 256
+#
+# WWPN Pool
+#
+# For FI-A
+name_of_wwpn_pool_san_a: "{{ prefix }}-Fabric-A-WWPN_Pool"
+wwpn_pool_start_on_san_a: "20:00:00:25:B5:21:0A:00"
+wwpn_pool_size_on_san_a: 256
+#
+# For FI-B
+name_of_wwpn_pool_san_b: "{{ prefix }}-Fabric-B-WWPN_Pool"
+wwpn_pool_start_on_san_b: "20:00:00:25:B5:21:0B:00"
+wwpn_pool_size_on_san_b: 256
+
+# ##############################################################################
+#
+#    Server Policies
+#
+# ##############################################################################
+
+# Chassis Policies
+name_of_chassis_thermal_policy: "{{ prefix }}-Chassis-Thermal_Policy"
+name_of_chassis_power_policy: "{{ prefix }}-Chassis-Power_Policy"
+
+# BIOS Policy 
+name_of_m7_bios_policy: "{{ prefix }}-{{ server_cpu_type }}-BIOS_M7_Policy"
+name_of_m6_bios_policy: "{{ prefix }}-{{ server_cpu_type }}-BIOS_M6_Policy"
+
+# IMC Access Policy - Configures the KVM to be accessed In-Band
+# The in-band vlan must be enabled on the trunk between Nexus 9K and UCS FI
+name_of_imc_access_policy: "{{ prefix }}-IMC-Access_Policy"
+#ib_vlan_for_cimc_access: 
+
+# KVM Access Policy - Enables (true) or disables (false) Tunneled KVM Server Access
+# Ensure the Intersight Account allows Tunneled KVM> To enable Tunneled KVM for 
+# account, go to Settings > Security and Privacy and enable Tunneled KVM settings
+name_of_kvm_policy: "{{ prefix }}-vKVM_Policy"
+enable_tunneled_kvm: "true"
+
+# Virtual Media Policy - enables mounting ISO files using KVM 
+name_of_vmedia_policy: "{{ prefix }}-vMedia_Policy"
+
+# IPMI over LAN Policy 
+name_of_ipmi_policy: "{{ prefix }}-IPMI-LAN_Policy"
+
+# Local User Policy to enable KVM and IPMI Access
+name_of_local_user_policy: "{{ prefix }}-Local-Usr_Policy"
+name_of_local_user: "admin"
+role_of_local_user: admin
+password_for_local_user: "{{ vault_password_for_local_user }}"
+
+# Ethernet QoS Policy to set MTU 9000 and QoS Best Effort;
+# QoS values can be updated in roles/create_server_policies/defaults/main.yml
+name_of_ethernet_qos_policy: "{{ prefix }}-Ethernet-QoS_Policy"
+
+# Ethernet Network Control Policy to enable CDP and LLDP
+name_of_ethernet_network_control_policy: "{{ prefix }}-Ethernet-Network-Control_Policy"
+
+# Default Ethernet Adapter Policy for VMware
+# Various values can be updated under roles/create_server_policies/defaults/main.yml
+name_of_ethernet_adapter_vmware_policy: "{{ prefix }}-Ethernet-Adapter-Default-VMware_Policy"
+
+# Ethernet High Traffic Adapter Policy
+# Various values can be updated under roles/create_server_policies/defaults/main.yml
+name_of_ethernet_adapter_hightrf_policy: "{{ prefix }}-Ethernet-Adapter-HighTrf-VMware_Policy"
+
+# Ethernet 16 RX Queues VIC Adapter Policy
+# Various values can be updated under roles/create_server_policies/defaults/main.yml
+name_of_ethernet_adapter_16rxq_policy: "{{ prefix }}-Ethernet-Adapter-16RXQs-{{ vic_type }}_Policy"
+
+# Ethernet Network Group Policy - VLAN details of vNICs assigned to virtual switches for Management
+name_of_network_group_policy_for_management: "{{ prefix }}-Ethernet-Network-Group-Mgmt_Policy"
+native_vlan_for_mgmt_vnic: 119
+allowed_vlans_for_mgmt_vnic: "119"
+
+# Ethernet Network Group Policy - VLANs details of vNIC assigned to vDS for vMotion, and VM-Traffic VLANs
+name_of_network_group_policy_for_vds: "{{ prefix }}-Ethernet-Network-Group-VM-Network_Policy"
+native_vlan_for_vds_vnic: 2
+allowed_vlans_for_vds_vnic: "19,119,1000,1100-1102"
+
+# LAN Connectivity Policy
+# 4 interfaces for all hosts. 
+
+# - Note -
+# In the current version of Ansible Playbooks, we require unique vNIC names when 
+# configuring LAN connectivity policies
+
+# 00-vSwitch0/fc-A: For Management mapped to FI-A
+# 01-vSwitch0/fc-B: For Management mapped to FI-B
+# 02-vDS0/fc-A: For vMotion and traffic mapped to FI-A
+# 03-vDS0/fc-B: For vMotion and traffic mapped to FI-B
+
+name_of_fc_lan_connectivity_policy: "{{ prefix }}-LAN-Connectivity-FC-{{ vic_type }}_Policy"
+
+# These vNIC names must be unique within use for the environment.  If these are specified within an existing LAN Connectivity Policy, this LAN Connectivity Policy creation will fail.  This behavior should be corrected at some point.
+
+name_of_fc_vnic_1: "0-vSwitch0-A"
+name_of_fc_vnic_2: "1-vSwitch0-B"
+name_of_fc_vnic_3: "2-vDS0-A"
+name_of_fc_vnic_4: "3-vDS0-B"
+
+# Boot mode for server. Either put Uefi or Legacy
+# UEFI secure boot true or false
+boot_mode: "Uefi"
+enable_uefi_secureboot: "true"
+
+# Boot LUN ID on Storage
+lun_id: 0
+
+# ------------------------- FC Configurations ------------------------------
+#
+# SAN connectivity Policy
+name_of_san_connectivity_policy: "{{ prefix }}-SAN-Connectivity-{{ vic_type }}_Policy"
+name_of_vhba_a: "vHBA-A"
+name_of_vhba_b: "vHBA-B"
+# Optional FC-NVMe Adapter Configuration
+name_of_nvme_vhba_a: "vHBA-NVMe-A"
+name_of_nvme_vhba_b: "vHBA-NVMe-B"
+
+# Fibre Channel QoS Policy
+name_of_fc_qos_policy: "{{ prefix }}-FC-QoS_Policy"
+
+# Fibre Channel Adapter Policy
+name_of_fc_adapter_policy: "{{ prefix }}-FC-Adapter_Policy"
+
+# NVMe over Fibre Channel Initiator Adapter Policy
+name_of_fc_nvme_initiator_adapter_policy: "{{ prefix }}-FC-NVMe-Adapter_Policy"
+
+# Fibre Channel Network Policy: SAN-A
+name_of_fc_network_policy_san_a: "{{ prefix}}-FC-Network-SAN-A_Policy"
+fcoe_vlan_id_SAN_A: 101
+vsan_id_SAN_A: 101
+
+# Fibre Channel Network Policy: SAN-B
+name_of_fc_network_policy_san_b: "{{ prefix}}-FC-Network-SAN-B_Policy"
+fcoe_vlan_id_SAN_B: 102
+vsan_id_SAN_B: 102
+
+# Boot Order Policy for Fibre Channel Boot
+fc_boot_order_policy_name: "{{ prefix }}-FC-Boot-Order-{{ vic_type }}_Policy"
+
+# Provide logical names to identify during boot
+# edit to conform with naming of VSP controller ports
+#
+san_boot_device_1a_name: "VSP-CTL0-1A"
+san_boot_device_1b_name: "VSP-CTL0-3A"
+san_boot_device_2a_name: "VSP-CTL1-2A"
+san_boot_device_2b_name: "VSP-CTL1-4A"
+
+# Provide Target WWPN Names
+# examples from production environment
+# pull from VSP in environment to be configured
+san_boot_target_1a_wwpn: "50:06:0E:80:08:ED:4D:00"
+san_boot_target_1b_wwpn: "50:06:0E:80:08:ED:4D:20"
+san_boot_target_2a_wwpn: "50:06:0E:80:08:ED:4D:10"
+san_boot_target_2b_wwpn: "50:06:0E:80:08:ED:4D:30"
+
+
+# ------------------------ Server Profile Template ----------------------------------
+
+name_of_fc_SPT: "{{ prefix }}-{{ server_cpu_type }}-{{ vic_type }}-FC_Template"
